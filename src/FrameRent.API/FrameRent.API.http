@@ -1,0 +1,6 @@
+@FrameRent.API_HostAddress = http://localhost:5027
+
+GET {{FrameRent.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
