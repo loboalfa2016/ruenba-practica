@@ -159,14 +159,7 @@
                     <button type="button" class="fr-btn-outline" data-bs-dismiss="modal">Close</button>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        @if (User.IsInRole("Client"))
-                        {
-                            <button type="submit" id="submitRentalBtn" class="fr-btn-primary">Confirm &amp; Request Rental</button>
-                        }
-                        else
-                        {
-                            <button type="button" class="fr-btn-outline" disabled>Staff accounts manage via API</button>
-                        }
+                        <button type="submit" id="submitRentalBtn" class="fr-btn-primary">Confirm &amp; Request Rental</button>
                     }
                     else
                     {

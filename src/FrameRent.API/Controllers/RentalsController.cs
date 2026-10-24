@@ -27,7 +27,7 @@ public class RentalsController : ControllerBase
     private bool IsStaff => User.IsInRole("Staff");
 
     [HttpPost]
-    [Authorize(Roles = "Client")]
+    [Authorize(Roles = "Client,Staff")]
     public async Task<IActionResult> CreateRental([FromBody] CreateRentalRequest request)
     {
         var created = await _rentalService.CreateRentalAsync(CurrentUserId, request);
@@ -35,7 +35,7 @@ public class RentalsController : ControllerBase
     }
 
     [HttpGet("mine")]
-    [Authorize(Roles = "Client")]
+    [Authorize(Roles = "Client,Staff")]
     public async Task<IActionResult> GetMine()
     {
         var rentals = await _rentalService.GetCustomerRentalsAsync(CurrentUserId);

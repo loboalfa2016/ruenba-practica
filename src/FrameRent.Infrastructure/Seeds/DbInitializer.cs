@@ -42,7 +42,15 @@ public static class DbInitializer
             if (createStaffResult.Succeeded)
             {
                 await userManager.AddToRoleAsync(newStaff, "Staff");
+                await userManager.AddToRoleAsync(newStaff, "Client");
             }
+        }
+        else
+        {
+            if (!await userManager.IsInRoleAsync(staffUser, "Staff"))
+                await userManager.AddToRoleAsync(staffUser, "Staff");
+            if (!await userManager.IsInRoleAsync(staffUser, "Client"))
+                await userManager.AddToRoleAsync(staffUser, "Client");
         }
 
         // 3. Initial Equipment seed if catalog is empty

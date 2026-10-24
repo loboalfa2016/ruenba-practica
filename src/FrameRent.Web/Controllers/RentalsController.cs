@@ -23,7 +23,6 @@ public class RentalsController : Controller
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
     [HttpGet]
-    [Authorize(Roles = "Client")]
     public async Task<IActionResult> Mine()
     {
         var rentals = await _rentalService.GetCustomerRentalsAsync(CurrentUserId);
@@ -31,7 +30,6 @@ public class RentalsController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Client")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(BookRentalViewModel model)
     {
@@ -62,7 +60,6 @@ public class RentalsController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Client")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(Guid id)
     {

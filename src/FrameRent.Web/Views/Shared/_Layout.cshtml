@@ -22,10 +22,7 @@
 
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    @if (User.IsInRole("Client"))
-                    {
-                        <a class="fr-nav-link" asp-controller="Rentals" asp-action="Mine">My Rentals</a>
-                    }
+                    <a class="fr-nav-link" asp-controller="Rentals" asp-action="Mine">My Rentals</a>
 
                     @if (User.IsInRole("Staff"))
                     {
