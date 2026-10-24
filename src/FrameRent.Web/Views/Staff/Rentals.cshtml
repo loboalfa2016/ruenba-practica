@@ -1,0 +1,231 @@
+@model FrameRent.Web.Models.StaffRentalsViewModel
+@{
+    ViewData["Title"] = "Staff - Rental Lifecycle Management";
+}
+
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-inline-flex align-items-center gap-2 mb-1 px-2 py-0.5 rounded" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3);">
+            <span class="text-warning small fw-bold">STAFF CONTROL PORTAL</span>
+        </div>
+        <h2 class="fw-bold text-light mb-1">Fleet Rentals Management</h2>
+        <p class="text-secondary small mb-0">Approve requests, log equipment handovers, and process returns with automatic late penalties.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="TopEquipment" class="fr-btn-outline">&#128202; Top Equipment Report</a>
+    </div>
+</div>
+
+<!-- Status Filters -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a asp-action="Rentals" class="fr-btn-outline @(Model.SelectedStatus == null ? "border-warning text-warning" : "")" style="font-size: 0.82rem;">All Rentals</a>
+    <a asp-action="Rentals" asp-route-status="Pending" class="fr-btn-outline @(Model.SelectedStatus == FrameRent.Domain.Enums.RentalStatus.Pending ? "border-warning text-warning" : "")" style="font-size: 0.82rem;">Pending</a>
+    <a asp-action="Rentals" asp-route-status="Approved" class="fr-btn-outline @(Model.SelectedStatus == FrameRent.Domain.Enums.RentalStatus.Approved ? "border-warning text-warning" : "")" style="font-size: 0.82rem;">Approved</a>
+    <a asp-action="Rentals" asp-route-status="Delivered" class="fr-btn-outline @(Model.SelectedStatus == FrameRent.Domain.Enums.RentalStatus.Delivered ? "border-warning text-warning" : "")" style="font-size: 0.82rem;">Delivered</a>
+    <a asp-action="Rentals" asp-route-status="Returned" class="fr-btn-outline @(Model.SelectedStatus == FrameRent.Domain.Enums.RentalStatus.Returned ? "border-warning text-warning" : "")" style="font-size: 0.82rem;">Returned</a>
+    <a asp-action="Rentals" asp-route-status="Rejected" class="fr-btn-outline @(Model.SelectedStatus == FrameRent.Domain.Enums.RentalStatus.Rejected ? "border-warning text-warning" : "")" style="font-size: 0.82rem;">Rejected</a>
+    <a asp-action="Rentals" asp-route-status="Canceled" class="fr-btn-outline @(Model.SelectedStatus == FrameRent.Domain.Enums.RentalStatus.Canceled ? "border-warning text-warning" : "")" style="font-size: 0.82rem;">Canceled</a>
+</div>
+
+@if (!Model.Rentals.Any())
+{
+    <div class="p-5 text-center rounded-4" style="background: var(--bg-card); border: 1px dashed var(--border-subtle);">
+        <p class="text-secondary mb-0">No rentals found under this status filter.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="fr-table">
+            <thead>
+                <tr>
+                    <th>Equipment</th>
+                    <th>Customer</th>
+                    <th>Units</th>
+                    <th>Dates</th>
+                    <th>Total &amp; Penalty</th>
+                    <th>Status</th>
+                    <th>Staff Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var rental in Model.Rentals)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-light">@rental.EquipmentName</div>
+                            <div class="text-muted small" style="font-family: monospace;">ID: @rental.Id.ToString().Substring(0, 8)...</div>
+                        </td>
+                        <td>
+                            <div class="text-secondary small" style="font-family: monospace;">@rental.ClientId.Substring(0, Math.Min(12, rental.ClientId.Length))...</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-dark border border-secondary text-light">@rental.Quantity unit(s)</span>
+                        </td>
+                        <td>
+                            <div class="text-light small">
+                                @rental.StartDate.ToString("MMM dd") &rarr; @rental.EndDate.ToString("MMM dd, yyyy")
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-light">$@rental.TotalCost.ToString("F2")</div>
+                            @if (rental.OverduePenalty > 0)
+                            {
+                                <span class="badge bg-danger text-light small fw-bold">+$@rental.OverduePenalty.ToString("F2") Late Fee</span>
+                            }
+                        </td>
+                        <td>
+                            @switch (rental.Status)
+                            {
+                                case FrameRent.Domain.Enums.RentalStatus.Pending:
+                                    <span class="badge-status badge-pending">&bull; Pending</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Approved:
+                                    <span class="badge-status badge-approved">&bull; Approved</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Delivered:
+                                    <span class="badge-status badge-delivered">&bull; Delivered</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Returned:
+                                    <span class="badge-status badge-returned">&bull; Returned</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Rejected:
+                                    <span class="badge-status badge-rejected">&bull; Rejected</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Canceled:
+                                    <span class="badge-status badge-canceled">&bull; Canceled</span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                @if (rental.Status == FrameRent.Domain.Enums.RentalStatus.Pending)
+                                {
+                                    <form asp-action="Approve" asp-route-id="@rental.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="fr-btn-success" title="Approve Request">Approve</button>
+                                    </form>
+                                    <form asp-action="Reject" asp-route-id="@rental.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Reject this rental request?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="fr-btn-danger" title="Reject Request">Reject</button>
+                                    </form>
+                                }
+                                else if (rental.Status == FrameRent.Domain.Enums.RentalStatus.Approved)
+                                {
+                                    <form asp-action="Deliver" asp-route-id="@rental.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="fr-btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                            Mark Delivered
+                                        </button>
+                                    </form>
+                                }
+                                else if (rental.Status == FrameRent.Domain.Enums.RentalStatus.Delivered)
+                                {
+                                    <button type="button" class="fr-btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;"
+                                            onclick="openReturnModal('@rental.Id', '@rental.EquipmentName.Replace("'", "\\'") ', '@rental.EndDate.ToString("yyyy-MM-dd")', @rental.DailyRate, @rental.Quantity)">
+                                        Register Return
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">&mdash;</span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Return Modal for Staff -->
+<div class="modal fade" id="staffReturnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content fr-modal">
+            <div class="modal-header fr-modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold text-light">Register Gear Return</h5>
+                    <span id="returnModalEquipName" class="text-warning small"></span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Return" method="post" id="returnForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="returnRentalId" name="id" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="fr-label">Actual Return Date</label>
+                        <input type="date" id="returnDateInput" name="returnDate" class="fr-input" required onchange="calculateLateFeePreview()" />
+                    </div>
+
+                    <div id="returnPenaltyPreview" class="p-3 rounded-3" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle);">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="small text-secondary">Rental Scheduled End Date:</span>
+                            <span id="previewEndDate" class="small text-light fw-bold"></span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mt-2">
+                            <span class="small text-secondary">Overdue Penalty (1.5x Daily Rate):</span>
+                            <span id="previewPenaltyAmount" class="fw-bold text-success">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer fr-modal-footer">
+                    <button type="button" class="fr-btn-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="fr-btn-primary">Confirm Return &amp; Complete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let returnScheduledEndDate = '';
+    let returnDailyRate = 0;
+    let returnQuantity = 0;
+
+    function openReturnModal(id, equipName, endDateStr, rate, qty) {
+        document.getElementById('returnRentalId').value = id;
+        document.getElementById('returnModalEquipName').innerText = equipName;
+        document.getElementById('previewEndDate').innerText = endDateStr;
+        
+        returnScheduledEndDate = endDateStr;
+        returnDailyRate = rate;
+        returnQuantity = qty;
+
+        // Default to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('returnDateInput').value = today;
+
+        calculateLateFeePreview();
+
+        const modal = new bootstrap.Modal(document.getElementById('staffReturnModal'));
+        modal.show();
+    }
+
+    function calculateLateFeePreview() {
+        const actualDateStr = document.getElementById('returnDateInput').value;
+        const penaltySpan = document.getElementById('previewPenaltyAmount');
+
+        if (!actualDateStr || !returnScheduledEndDate) return;
+
+        const actualDate = new Date(actualDateStr);
+        const scheduledDate = new Date(returnScheduledEndDate);
+
+        const diffTime = actualDate - scheduledDate;
+        const overdueDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (overdueDays > 0) {
+            // Formula: overdueDays * dailyRate * quantity * 1.5
+            const penalty = overdueDays * returnDailyRate * returnQuantity * 1.5;
+            penaltySpan.innerText = `+$${penalty.toFixed(2)} (${overdueDays} day(s) late)`;
+            penaltySpan.className = 'fw-bold text-danger';
+        } else {
+            penaltySpan.innerText = '$0.00 (On Time)';
+            penaltySpan.className = 'fw-bold text-success';
+        }
+    }
+</script>
+}

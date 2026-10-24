@@ -1,0 +1,114 @@
+@model IEnumerable<FrameRent.Application.DTOs.Rental.RentalDto>
+@{
+    ViewData["Title"] = "My Rentals";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold text-light mb-1">My Rentals</h2>
+        <p class="text-secondary small mb-0">Track your gear reservations, status history, and penalty fees.</p>
+    </div>
+    <a asp-controller="Home" asp-action="Index" class="fr-btn-primary">
+        + Browse More Equipment
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="p-5 text-center rounded-4" style="background: var(--bg-card); border: 1px dashed var(--border-subtle);">
+        <h5 class="text-light fw-bold mb-2">No Active or Past Rentals Found</h5>
+        <p class="text-secondary mb-4">You have not requested any audiovisual equipment rentals yet.</p>
+        <a asp-controller="Home" asp-action="Index" class="fr-btn-primary">Explore Gear Catalog</a>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="fr-table">
+            <thead>
+                <tr>
+                    <th>Equipment</th>
+                    <th>Units</th>
+                    <th>Rental Dates</th>
+                    <th>Total Cost</th>
+                    <th>Status</th>
+                    <th>Penalty</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var rental in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-light">@rental.EquipmentName</div>
+                            <div class="text-muted small" style="font-family: monospace;">ID: @rental.Id.ToString().Substring(0, 8)...</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-dark border border-secondary text-light">@rental.Quantity unit(s)</span>
+                        </td>
+                        <td>
+                            <div class="text-light small">
+                                <strong>@rental.StartDate.ToString("MMM dd, yyyy")</strong> &rarr; 
+                                <strong>@rental.EndDate.ToString("MMM dd, yyyy")</strong>
+                            </div>
+                            <div class="text-muted small">@((rental.EndDate - rental.StartDate).Days) day(s)</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-light">$@rental.TotalCost.ToString("F2")</div>
+                            <div class="text-muted small">$@rental.DailyRate.ToString("F2")/day</div>
+                        </td>
+                        <td>
+                            @switch (rental.Status)
+                            {
+                                case FrameRent.Domain.Enums.RentalStatus.Pending:
+                                    <span class="badge-status badge-pending">&bull; Pending Approval</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Approved:
+                                    <span class="badge-status badge-approved">&bull; Approved</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Delivered:
+                                    <span class="badge-status badge-delivered">&bull; Gear Delivered</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Returned:
+                                    <span class="badge-status badge-returned">&bull; Returned</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Rejected:
+                                    <span class="badge-status badge-rejected">&bull; Rejected</span>
+                                    break;
+                                case FrameRent.Domain.Enums.RentalStatus.Canceled:
+                                    <span class="badge-status badge-canceled">&bull; Canceled</span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            @if (rental.OverduePenalty > 0)
+                            {
+                                <span class="badge bg-danger text-light fw-bold">+$@rental.OverduePenalty.ToString("F2") Late Fee</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">$0.00</span>
+                            }
+                        </td>
+                        <td>
+                            @if ((rental.Status == FrameRent.Domain.Enums.RentalStatus.Pending || rental.Status == FrameRent.Domain.Enums.RentalStatus.Approved) 
+                                 && DateTime.UtcNow.Date < rental.StartDate.Date)
+                            {
+                                <form asp-controller="Rentals" asp-action="Cancel" asp-route-id="@rental.Id" method="post" 
+                                      onsubmit="return confirm('Are you sure you want to cancel this rental request?');" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="fr-btn-danger">Cancel Request</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">&mdash;</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

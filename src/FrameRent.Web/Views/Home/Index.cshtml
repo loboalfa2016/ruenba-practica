@@ -1,0 +1,295 @@
+@model FrameRent.Web.Models.CatalogViewModel
+@{
+    ViewData["Title"] = "Audiovisual Equipment Catalog";
+}
+
+<!-- Hero Section -->
+<div class="fr-hero">
+    <div class="d-inline-flex align-items-center gap-2 mb-3 px-3 py-1 rounded-pill" style="background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.25);">
+        <span style="color: var(--brand-orange); font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Professional Gear Fleet</span>
+        <span style="color: var(--text-muted);">&bull;</span>
+        <span class="text-secondary small">Direct Availability Tracking</span>
+    </div>
+    <h1 class="fr-hero-title">Rent Cinema Cameras, Lights <br />&amp; <span class="fr-hero-highlight">Audio Gear</span> on Demand</h1>
+    <p class="fr-hero-subtitle">
+        Eliminate double bookings and manual spreadsheet errors. Browse verified equipment, check date availability in real-time, and reserve gear in seconds.
+    </p>
+
+    <!-- Search & Filter Controls -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <form method="get" asp-action="Index" class="d-flex flex-column flex-md-row gap-2 mb-4">
+                <input type="text" name="search" value="@Model.SearchTerm" class="fr-input flex-grow-1" placeholder="Search by name, lenses, lighting..." />
+                @if (!string.IsNullOrEmpty(Model.SelectedCategory))
+                {
+                    <input type="hidden" name="category" value="@Model.SelectedCategory" />
+                }
+                <button type="submit" class="fr-btn-primary">Search Gear</button>
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || !string.IsNullOrEmpty(Model.SelectedCategory))
+                {
+                    <a asp-action="Index" class="fr-btn-outline">Clear</a>
+                }
+            </form>
+
+            <!-- Category Pills -->
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a asp-action="Index" asp-route-search="@Model.SearchTerm" 
+                   class="fr-btn-outline @(string.IsNullOrEmpty(Model.SelectedCategory) ? "border-warning text-warning" : "")"
+                   style="font-size: 0.82rem; padding: 0.35rem 0.8rem;">
+                    All Categories
+                </a>
+                @foreach (var cat in Model.Categories)
+                {
+                    <a asp-action="Index" asp-route-category="@cat" asp-route-search="@Model.SearchTerm"
+                       class="fr-btn-outline @(Model.SelectedCategory == cat ? "border-warning text-warning" : "")"
+                       style="font-size: 0.82rem; padding: 0.35rem 0.8rem;">
+                        @cat
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Catalog Grid -->
+<div class="mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="fw-bold mb-0 text-light">Available Fleet (@Model.Equipments.Count())</h4>
+        <span class="text-muted small">Updated in real-time</span>
+    </div>
+
+    @if (!Model.Equipments.Any())
+    {
+        <div class="p-5 text-center rounded-4" style="background: var(--bg-card); border: 1px dashed var(--border-subtle);">
+            <p class="text-secondary mb-3">No equipment matched your search criteria.</p>
+            <a asp-action="Index" class="fr-btn-outline">View Complete Catalog</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var item in Model.Equipments)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="fr-card h-100">
+                        <div class="fr-card-header">
+                            <span class="fr-badge-category">@item.Category</span>
+                            <h5 class="fw-bold text-light mb-1">@item.Name</h5>
+                        </div>
+                        <div class="fr-card-body">
+                            <p class="text-secondary small flex-grow-1" style="min-height: 48px;">@item.Description</p>
+                            <div class="d-flex align-items-center justify-content-between pt-2">
+                                <span class="fr-badge-green">
+                                    <span style="font-size: 1.1rem; line-height: 0;">&bull;</span> @item.TotalUnits Units Total
+                                </span>
+                                <span class="text-muted small">Max 15 days</span>
+                            </div>
+                        </div>
+                        <div class="fr-card-footer">
+                            <div>
+                                <span class="fr-price">$@item.DailyRate.ToString("F2")</span>
+                                <span class="fr-price-sub">/day</span>
+                            </div>
+                            <button type="button" class="fr-btn-primary" 
+                                    style="padding: 0.45rem 0.95rem; font-size: 0.85rem;"
+                                    onclick="openRentModal('@item.Id', '@item.Name.Replace("'", "\\'") ', @item.DailyRate, @item.TotalUnits)">
+                                Rent Gear &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Rent & Availability Modal -->
+<div class="modal fade" id="rentModal" tabindex="-1" aria-labelledby="rentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content fr-modal">
+            <div class="modal-header fr-modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold text-light" id="rentModalTitle">Rent Equipment</h5>
+                    <span id="modalDailyRateText" class="text-warning small fw-bold"></span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="Rentals" asp-action="Create" method="post" id="rentalForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <input type="hidden" id="modalEquipmentId" name="EquipmentId" />
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="fr-label">Start Date</label>
+                            <input type="date" id="modalStartDate" name="StartDate" class="fr-input" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="fr-label">End Date</label>
+                            <input type="date" id="modalEndDate" name="EndDate" class="fr-input" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fr-label">Quantity (Units)</label>
+                        <input type="number" id="modalQuantity" name="Quantity" class="fr-input" min="1" max="10" value="1" required />
+                    </div>
+
+                    <!-- Live Availability Check Box -->
+                    <div id="availabilityStatusBox" class="p-3 rounded-3 mb-3" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle);">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="small text-secondary">Units available in range:</span>
+                            <span id="availableUnitsBadge" class="badge bg-secondary">Checking...</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="small text-secondary">Estimated Total Cost:</span>
+                            <span id="estimatedCostBadge" class="fw-bold text-light">$0.00</span>
+                        </div>
+                        <div id="availabilityMessage" class="small mt-2" style="display: none;"></div>
+                    </div>
+
+                    @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <div class="alert alert-warning small py-2 mb-0" role="alert">
+                            You must <a asp-controller="Account" asp-action="Login" class="fw-bold text-dark">Sign In</a> to request this rental.
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer fr-modal-footer">
+                    <button type="button" class="fr-btn-outline" data-bs-dismiss="modal">Close</button>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        @if (User.IsInRole("Client"))
+                        {
+                            <button type="submit" id="submitRentalBtn" class="fr-btn-primary">Confirm &amp; Request Rental</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="fr-btn-outline" disabled>Staff accounts manage via API</button>
+                        }
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="fr-btn-primary">Sign in to Reserve</a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let currentDailyRate = 0;
+    let currentTotalUnits = 0;
+    let currentEquipmentId = '';
+
+    function openRentModal(id, name, dailyRate, totalUnits) {
+        currentEquipmentId = id;
+        currentDailyRate = dailyRate;
+        currentTotalUnits = totalUnits;
+
+        document.getElementById('modalEquipmentId').value = id;
+        document.getElementById('rentModalTitle').innerText = name;
+        document.getElementById('modalDailyRateText').innerText = '$' + dailyRate.toFixed(2) + ' / day';
+
+        // Set default dates: tomorrow to +3 days
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const inThreeDays = new Date();
+        inThreeDays.setDate(inThreeDays.getDate() + 3);
+
+        const startDateInput = document.getElementById('modalStartDate');
+        const endDateInput = document.getElementById('modalEndDate');
+
+        const formatDate = (d) => d.toISOString().split('T')[0];
+        startDateInput.value = formatDate(tomorrow);
+        startDateInput.min = formatDate(tomorrow);
+        endDateInput.value = formatDate(inThreeDays);
+        endDateInput.min = formatDate(tomorrow);
+
+        checkLiveAvailability();
+
+        const rentModal = new bootstrap.Modal(document.getElementById('rentModal'));
+        rentModal.show();
+    }
+
+    document.getElementById('modalStartDate').addEventListener('change', checkLiveAvailability);
+    document.getElementById('modalEndDate').addEventListener('change', checkLiveAvailability);
+    document.getElementById('modalQuantity').addEventListener('input', calculateEstimateAndCheck);
+
+    function checkLiveAvailability() {
+        const from = document.getElementById('modalStartDate').value;
+        const to = document.getElementById('modalEndDate').value;
+        const badge = document.getElementById('availableUnitsBadge');
+        const messageDiv = document.getElementById('availabilityMessage');
+
+        if (!from || !to || !currentEquipmentId) return;
+
+        badge.className = 'badge bg-secondary';
+        badge.innerText = 'Checking...';
+        messageDiv.style.display = 'none';
+
+        fetch(`/Home/CheckAvailability?id=${currentEquipmentId}&from=${from}&to=${to}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    const available = res.data.availableUnits;
+                    badge.innerText = `${available} units available`;
+                    badge.className = available > 0 ? 'badge bg-success' : 'badge bg-danger';
+                    window.currentAvailableUnits = available;
+                    calculateEstimateAndCheck();
+                } else {
+                    badge.className = 'badge bg-danger';
+                    badge.innerText = 'Unavailable';
+                    messageDiv.style.display = 'block';
+                    messageDiv.className = 'small text-danger mt-2';
+                    messageDiv.innerText = res.message;
+                }
+            })
+            .catch(() => {
+                badge.className = 'badge bg-secondary';
+                badge.innerText = 'Live check offline';
+            });
+    }
+
+    function calculateEstimateAndCheck() {
+        const fromStr = document.getElementById('modalStartDate').value;
+        const toStr = document.getElementById('modalEndDate').value;
+        const qty = parseInt(document.getElementById('modalQuantity').value) || 1;
+        const submitBtn = document.getElementById('submitRentalBtn');
+        const messageDiv = document.getElementById('availabilityMessage');
+
+        if (!fromStr || !toStr) return;
+
+        const from = new Date(fromStr);
+        const to = new Date(toStr);
+        const diffTime = to - from;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 0 && diffDays <= 15) {
+            const cost = diffDays * currentDailyRate * qty;
+            document.getElementById('estimatedCostBadge').innerText = '$' + cost.toFixed(2) + ` (${diffDays} days)`;
+            
+            if (window.currentAvailableUnits !== undefined && qty > window.currentAvailableUnits) {
+                if (submitBtn) submitBtn.disabled = true;
+                messageDiv.style.display = 'block';
+                messageDiv.className = 'small text-danger mt-2';
+                messageDiv.innerText = `Requested quantity (${qty}) exceeds available units (${window.currentAvailableUnits}).`;
+            } else {
+                if (submitBtn) submitBtn.disabled = false;
+                messageDiv.style.display = 'none';
+            }
+        } else if (diffDays > 15) {
+            document.getElementById('estimatedCostBadge').innerText = 'Exceeds 15 days limit';
+            if (submitBtn) submitBtn.disabled = true;
+            messageDiv.style.display = 'block';
+            messageDiv.className = 'small text-danger mt-2';
+            messageDiv.innerText = 'Maximum allowed rental duration is 15 days.';
+        } else {
+            document.getElementById('estimatedCostBadge').innerText = '$0.00';
+            if (submitBtn) submitBtn.disabled = true;
+        }
+    }
+</script>
+}

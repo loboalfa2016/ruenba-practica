@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FrameRent</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <nav class="fr-navbar">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a class="fr-brand" asp-controller="Home" asp-action="Index">
+                <div class="fr-brand-icon">
+                    <span>FR</span>
+                </div>
+                <span>FrameRent</span>
+            </a>
+
+            <div class="d-flex align-items-center gap-2">
+                <a class="fr-nav-link" asp-controller="Home" asp-action="Index">Catalog</a>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    @if (User.IsInRole("Client"))
+                    {
+                        <a class="fr-nav-link" asp-controller="Rentals" asp-action="Mine">My Rentals</a>
+                    }
+
+                    @if (User.IsInRole("Staff"))
+                    {
+                        <div class="dropdown">
+                            <button class="fr-nav-link dropdown-toggle border-0 bg-transparent text-warning" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Staff Portal
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark" style="background-color: #151e33; border: 1px solid rgba(255,255,255,0.1);">
+                                <li><a class="dropdown-item" asp-controller="Staff" asp-action="Rentals">Manage Rentals</a></li>
+                                <li><a class="dropdown-item" asp-controller="Staff" asp-action="TopEquipment">Top Equipment Report</a></li>
+                            </ul>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="text-secondary small me-2 d-none d-md-inline">
+                        <span class="badge @(User.IsInRole("Staff") ? "bg-warning text-dark" : "bg-info text-dark")">
+                            @(User.IsInRole("Staff") ? "STAFF" : "CLIENT")
+                        </span>
+                        @User.Identity.Name
+                    </span>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="fr-btn-outline" style="padding: 0.35rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                    </form>
+                }
+                else
+                {
+                    <a class="fr-btn-outline" asp-controller="Account" asp-action="Login">Sign In</a>
+                    <a class="fr-btn-primary" asp-controller="Account" asp-action="Register">Get Started</a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4 mb-5 flex-grow-1">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="fr-alert fr-alert-success alert-dismissible fade show" role="alert">
+                <span>&#10003;</span>
+                <div>@TempData["SuccessMessage"]</div>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="fr-alert fr-alert-danger alert-dismissible fade show" role="alert">
+                <span>&#9888;</span>
+                <div>@TempData["ErrorMessage"]</div>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["WarningMessage"] != null)
+        {
+            <div class="fr-alert fr-alert-warning alert-dismissible fade show" role="alert">
+                <span>&#9888;</span>
+                <div>@TempData["WarningMessage"]</div>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @RenderBody()
+    </div>
+
+    <footer class="fr-footer">
+        <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
+            <div>
+                <span class="fw-bold text-light">FrameRent</span> &copy; 2026. Audiovisual Equipment Rental Platform.
+            </div>
+            <div class="d-flex gap-3">
+                <span class="text-secondary">Clean Architecture &middot; .NET 10</span>
+                <span class="text-secondary">&middot;</span>
+                <span class="text-secondary">PostgreSQL</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

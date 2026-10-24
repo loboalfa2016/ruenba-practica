@@ -1,0 +1,49 @@
+@model FrameRent.Web.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<div class="row justify-content-center pt-4">
+    <div class="col-md-5">
+        <div class="p-4 p-md-5 rounded-4" style="background: var(--bg-card); border: 1px solid var(--border-subtle); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div class="text-center mb-4">
+                <div class="fr-brand-icon mx-auto mb-3" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                    <span>FR</span>
+                </div>
+                <h3 class="fw-bold text-light mb-1">Create Client Account</h3>
+                <p class="text-secondary small">Register to start renting camera packages and gear</p>
+            </div>
+
+            <form asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="fr-label">Email Address</label>
+                    <input asp-for="Email" class="fr-input" placeholder="name@domain.com" autofocus />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="fr-label">Password</label>
+                    <input asp-for="Password" class="fr-input" type="password" placeholder="At least 8 characters (Upper, lower, digit, symbol)" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ConfirmPassword" class="fr-label">Confirm Password</label>
+                    <input asp-for="ConfirmPassword" class="fr-input" type="password" placeholder="Repeat your password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="fr-btn-primary w-100 justify-content-center py-2 mb-3">Register as Client</button>
+            </form>
+
+            <div class="text-center pt-3 border-top border-secondary border-opacity-25">
+                <span class="text-muted small">Already registered?</span>
+                <a asp-action="Login" class="text-warning small fw-bold ms-1 text-decoration-none">Sign In here</a>
+            </div>
+        </div>
+    </div>
+</div>

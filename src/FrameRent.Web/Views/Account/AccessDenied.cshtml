@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="row justify-content-center pt-5">
+    <div class="col-md-6 text-center">
+        <div class="p-5 rounded-4" style="background: var(--bg-card); border: 1px solid var(--border-subtle);">
+            <div class="text-danger display-1 fw-bold mb-3">&times;</div>
+            <h2 class="fw-bold text-light mb-2">Access Restricted</h2>
+            <p class="text-secondary mb-4">You do not have the required role or permission to view this resource.</p>
+            <a asp-controller="Home" asp-action="Index" class="fr-btn-primary">Return to Catalog</a>
+        </div>
+    </div>
+</div>

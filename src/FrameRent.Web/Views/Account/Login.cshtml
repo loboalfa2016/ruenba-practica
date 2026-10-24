@@ -1,0 +1,50 @@
+@model FrameRent.Web.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Sign In";
+}
+
+<div class="row justify-content-center pt-4">
+    <div class="col-md-5">
+        <div class="p-4 p-md-5 rounded-4" style="background: var(--bg-card); border: 1px solid var(--border-subtle); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div class="text-center mb-4">
+                <div class="fr-brand-icon mx-auto mb-3" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                    <span>FR</span>
+                </div>
+                <h3 class="fw-bold text-light mb-1">Welcome Back</h3>
+                <p class="text-secondary small">Access your FrameRent account or staff portal</p>
+            </div>
+
+            <form asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2 mb-3" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="fr-label">Email Address</label>
+                    <input asp-for="Email" class="fr-input" placeholder="e.g. user@domain.com or admin@framerent.com" autofocus />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Password" class="fr-label">Password</label>
+                    <input asp-for="Password" class="fr-input" type="password" placeholder="Enter your password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="fr-btn-primary w-100 justify-content-center py-2 mb-3">Sign In</button>
+            </form>
+
+            <div class="text-center pt-3 border-top border-secondary border-opacity-25">
+                <span class="text-muted small">Don't have an account?</span>
+                <a asp-action="Register" class="text-warning small fw-bold ms-1 text-decoration-none">Create a Client Account</a>
+            </div>
+
+            <div class="mt-4 p-3 rounded-3" style="background: rgba(0,0,0,0.25); border: 1px dashed var(--border-subtle);">
+                <div class="text-secondary small fw-bold mb-1">&#128273; Seeded Staff Credentials:</div>
+                <div class="text-muted small">Email: <code class="text-warning">admin@framerent.com</code></div>
+                <div class="text-muted small">Password: <code class="text-warning">StaffSecure2026*</code></div>
+            </div>
+        </div>
+    </div>
+</div>
