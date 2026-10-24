@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FrameRent.API/FrameRent.API.csproj" />
+    <Project Path="src/FrameRent.Application/FrameRent.Application.csproj" />
+    <Project Path="src/FrameRent.Domain/FrameRent.Domain.csproj" />
+    <Project Path="src/FrameRent.Infrastructure/FrameRent.Infrastructure.csproj" />
+    <Project Path="src/FrameRent.Web/FrameRent.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FrameRent.Tests/FrameRent.Tests.csproj" />
+  </Folder>
+</Solution>
